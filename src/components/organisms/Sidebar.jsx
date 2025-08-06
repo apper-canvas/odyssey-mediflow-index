@@ -4,10 +4,11 @@ import ApperIcon from "@/components/ApperIcon";
 import { motion } from "framer-motion";
 
 const Sidebar = ({ isOpen, onClose }) => {
-  const navigationItems = [
+const navigationItems = [
     { name: "Dashboard", href: "/", icon: "LayoutDashboard" },
     { name: "Patients", href: "/patients", icon: "Users" },
     { name: "Appointments", href: "/appointments", icon: "Calendar" },
+    { name: "Prescriptions", href: "/prescriptions", icon: "Pill" },
     { name: "Reports", href: "/reports", icon: "BarChart3" }
   ];
 

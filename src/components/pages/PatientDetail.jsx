@@ -1,32 +1,37 @@
-import React, { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
-import Card from "@/components/atoms/Card";
-import Button from "@/components/atoms/Button";
-import Badge from "@/components/atoms/Badge";
-import TextArea from "@/components/atoms/TextArea";
-import Loading from "@/components/ui/Loading";
-import Error from "@/components/ui/Error";
-import ApperIcon from "@/components/ApperIcon";
+import React, { useEffect, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import { patientService } from "@/services/api/patientService";
 import { appointmentService } from "@/services/api/appointmentService";
 import { clinicalNoteService } from "@/services/api/clinicalNoteService";
 import { documentService } from "@/services/api/documentService";
-import DocumentUpload from "@/components/organisms/DocumentUpload";
-import TreatmentTimeline from "@/components/organisms/TreatmentTimeline";
 import { toast } from "react-toastify";
 import { format } from "date-fns";
+import ApperIcon from "@/components/ApperIcon";
+import DocumentUpload from "@/components/organisms/DocumentUpload";
+import TreatmentTimeline from "@/components/organisms/TreatmentTimeline";
+import Loading from "@/components/ui/Loading";
+import Error from "@/components/ui/Error";
+import Patients from "@/components/pages/Patients";
+import Appointments from "@/components/pages/Appointments";
+import Badge from "@/components/atoms/Badge";
+import Input from "@/components/atoms/Input";
+import TextArea from "@/components/atoms/TextArea";
+import Button from "@/components/atoms/Button";
+import Select from "@/components/atoms/Select";
+import Card from "@/components/atoms/Card";
 
 const PatientDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const [patient, setPatient] = useState(null);
+const [patient, setPatient] = useState(null);
   const [appointments, setAppointments] = useState([]);
-const [clinicalNotes, setClinicalNotes] = useState([]);
+  const [clinicalNotes, setClinicalNotes] = useState([]);
   const [documents, setDocuments] = useState([]);
+  const [prescriptions, setPrescriptions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [activeTab, setActiveTab] = useState("overview");
-  const [newNote, setNewNote] = useState({
+const [newNote, setNewNote] = useState({
     chiefComplaint: "",
     symptoms: "",
     diagnosis: "",
@@ -34,6 +39,14 @@ const [clinicalNotes, setClinicalNotes] = useState([]);
     followUp: ""
   });
 
+  const [newPrescription, setNewPrescription] = useState({
+    medicationName: "",
+    dosage: "",
+    frequency: "",
+    duration: "",
+    instructions: "",
+    refills: 0
+  });
   useEffect(() => {
     loadPatientData();
   }, [id]);
@@ -42,14 +55,40 @@ const [clinicalNotes, setClinicalNotes] = useState([]);
     try {
       setLoading(true);
 setError("");
-      
-      const [patientData, appointmentsData, notesData, documentsData] = await Promise.all([
+const [patientData, appointmentsData, notesData, documentsData] = await Promise.all([
         patientService.getById(parseInt(id)),
         appointmentService.getAll(),
         clinicalNoteService.getAll(),
         patientService.getDocuments(parseInt(id))
       ]);
 
+      // Mock prescription data for the patient
+      const mockPrescriptions = [
+        {
+          Id: 1,
+          patientId: parseInt(id),
+          medicationName: "Lisinopril",
+          dosage: "10mg",
+          frequency: "Once daily",
+          duration: "30 days",
+          instructions: "Take with food",
+          refills: 5,
+          prescribedDate: new Date().toISOString(),
+          status: "Active"
+        },
+        {
+          Id: 2,
+          patientId: parseInt(id),
+          medicationName: "Metformin",
+          dosage: "500mg",
+          frequency: "Twice daily",
+          duration: "90 days",
+          instructions: "Take with meals",
+          refills: 3,
+          prescribedDate: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
+          status: "Active"
+        }
+      ];
       if (!patientData) {
         setError("Patient not found");
         return;
@@ -62,8 +101,9 @@ setError("");
       const patientNotes = notesData.filter(note => note.patientId === parseInt(id));
       
       setAppointments(patientAppointments);
-      setClinicalNotes(patientNotes);
+setClinicalNotes(patientNotes);
       setDocuments(documentsData);
+      setPrescriptions(mockPrescriptions);
       
     } catch (err) {
       console.error("Failed to load patient data:", err);
@@ -137,6 +177,67 @@ const handleDocumentUpload = async (files) => {
     } catch (error) {
       console.error("Failed to delete document:", error);
       toast.error("Failed to delete document. Please try again.");
+}
+  };
+
+  const handleAddPrescription = async () => {
+    if (!newPrescription.medicationName || !newPrescription.dosage || !newPrescription.frequency) {
+      toast.error("Please fill in all required prescription fields");
+      return;
+    }
+
+    try {
+      const prescription = {
+        Id: Math.max(0, ...prescriptions.map(p => p.Id)) + 1,
+        patientId: patient.Id,
+        ...newPrescription,
+        prescribedDate: new Date().toISOString(),
+        status: "Active"
+      };
+
+      setPrescriptions([prescription, ...prescriptions]);
+      setNewPrescription({
+        medicationName: "",
+        dosage: "",
+        frequency: "",
+        duration: "",
+        instructions: "",
+        refills: 0
+      });
+      
+      toast.success("Prescription added successfully");
+    } catch (error) {
+      toast.error("Failed to add prescription");
+    }
+  };
+
+  const handleDiscontinuePrescription = async (prescriptionId) => {
+    try {
+      setPrescriptions(prescriptions.map(p => 
+        p.Id === prescriptionId 
+          ? { ...p, status: "Discontinued" }
+          : p
+      ));
+      toast.success("Prescription discontinued");
+    } catch (error) {
+      toast.error("Failed to discontinue prescription");
+    }
+  };
+
+  const handleRenewPrescription = async (prescriptionId) => {
+    try {
+      const originalPrescription = prescriptions.find(p => p.Id === prescriptionId);
+      const renewedPrescription = {
+        ...originalPrescription,
+        Id: Math.max(0, ...prescriptions.map(p => p.Id)) + 1,
+        prescribedDate: new Date().toISOString(),
+        status: "Active"
+      };
+      
+      setPrescriptions([renewedPrescription, ...prescriptions]);
+      toast.success("Prescription renewed");
+    } catch (error) {
+      toast.error("Failed to renew prescription");
     }
   };
 
@@ -145,10 +246,10 @@ const tabs = [
     { id: "appointments", name: "Appointments", icon: "Calendar" },
     { id: "notes", name: "Clinical Notes", icon: "FileText" },
     { id: "documents", name: "Documents", icon: "FolderOpen" },
+    { id: "prescriptions", name: "Prescriptions", icon: "Pill" },
     { id: "treatment", name: "Treatment Plan", icon: "Target" },
     { id: "history", name: "Medical History", icon: "Activity" }
   ];
-
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -554,14 +655,163 @@ const tabs = [
                 </div>
               </Card>
             )}
+</div>
+        )}
+
+        {/* Prescriptions Tab */}
+        {activeTab === "prescriptions" && (
+          <div className="space-y-6">
+            {/* Add New Prescription */}
+            <Card className="p-6">
+              <h3 className="text-lg font-semibold text-slate-900 mb-4">Add New Prescription</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
+                <Input
+                  label="Medication Name *"
+                  value={newPrescription.medicationName}
+                  onChange={(e) => setNewPrescription({ ...newPrescription, medicationName: e.target.value })}
+                  placeholder="Enter medication name"
+                />
+                <Input
+                  label="Dosage *"
+                  value={newPrescription.dosage}
+                  onChange={(e) => setNewPrescription({ ...newPrescription, dosage: e.target.value })}
+                  placeholder="e.g., 10mg, 500mg"
+                />
+                <Select
+                  label="Frequency *"
+                  value={newPrescription.frequency}
+                  onChange={(e) => setNewPrescription({ ...newPrescription, frequency: e.target.value })}
+                  options={[
+                    { value: "", label: "Select frequency" },
+                    { value: "Once daily", label: "Once daily" },
+                    { value: "Twice daily", label: "Twice daily" },
+                    { value: "Three times daily", label: "Three times daily" },
+                    { value: "Four times daily", label: "Four times daily" },
+                    { value: "As needed", label: "As needed" }
+                  ]}
+                />
+                <Input
+                  label="Duration"
+                  value={newPrescription.duration}
+                  onChange={(e) => setNewPrescription({ ...newPrescription, duration: e.target.value })}
+                  placeholder="e.g., 30 days, 3 months"
+                />
+                <Input
+                  label="Refills"
+                  type="number"
+                  value={newPrescription.refills}
+                  onChange={(e) => setNewPrescription({ ...newPrescription, refills: parseInt(e.target.value) || 0 })}
+                  placeholder="Number of refills"
+                />
+              </div>
+              <div className="mb-4">
+                <TextArea
+                  label="Special Instructions"
+                  value={newPrescription.instructions}
+                  onChange={(e) => setNewPrescription({ ...newPrescription, instructions: e.target.value })}
+                  placeholder="Additional instructions for the patient"
+                  rows={3}
+                />
+              </div>
+              <div className="flex justify-end">
+                <Button onClick={handleAddPrescription} className="bg-primary-500 hover:bg-primary-600">
+                  <ApperIcon name="Plus" size={16} className="mr-2" />
+                  Add Prescription
+                </Button>
+              </div>
+            </Card>
+
+            {/* Current Prescriptions */}
+            <Card className="p-6">
+              <h3 className="text-lg font-semibold text-slate-900 mb-4">Current Prescriptions</h3>
+              {prescriptions.length === 0 ? (
+                <div className="text-center py-8 text-slate-500">
+                  <ApperIcon name="Pill" size={48} className="mx-auto mb-3 text-slate-300" />
+                  <p>No prescriptions found</p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {prescriptions.map((prescription) => (
+                    <div key={prescription.Id} className="border border-slate-200 rounded-lg p-4">
+                      <div className="flex items-start justify-between mb-3">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-3 mb-2">
+                            <h4 className="font-semibold text-slate-900">{prescription.medicationName}</h4>
+                            <Badge
+                              variant={prescription.status === "Active" ? "success" : 
+                                      prescription.status === "Discontinued" ? "destructive" : "secondary"}
+                            >
+                              {prescription.status}
+                            </Badge>
+                          </div>
+                          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-2 text-sm text-slate-600">
+                            <div>
+                              <span className="font-medium">Dosage:</span> {prescription.dosage}
+                            </div>
+                            <div>
+                              <span className="font-medium">Frequency:</span> {prescription.frequency}
+                            </div>
+                            <div>
+                              <span className="font-medium">Duration:</span> {prescription.duration}
+                            </div>
+                            <div>
+                              <span className="font-medium">Refills:</span> {prescription.refills}
+                            </div>
+                          </div>
+                          {prescription.instructions && (
+                            <div className="mt-2 text-sm">
+                              <span className="font-medium text-slate-600">Instructions:</span> {prescription.instructions}
+                            </div>
+                          )}
+                          <div className="mt-2 text-xs text-slate-500">
+                            Prescribed: {format(new Date(prescription.prescribedDate), 'MMM dd, yyyy')}
+                          </div>
+                        </div>
+                        <div className="flex gap-2 ml-4">
+                          {prescription.status === "Active" && (
+                            <>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => handleRenewPrescription(prescription.Id)}
+                              >
+                                <ApperIcon name="RefreshCw" size={14} className="mr-1" />
+                                Renew
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="destructive"
+                                onClick={() => handleDiscontinuePrescription(prescription.Id)}
+                              >
+                                <ApperIcon name="StopCircle" size={14} className="mr-1" />
+                                Discontinue
+                              </Button>
+                            </>
+                          )}
+                          {prescription.status === "Discontinued" && (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => handleRenewPrescription(prescription.Id)}
+                            >
+                              <ApperIcon name="RefreshCw" size={14} className="mr-1" />
+                              Renew
+                            </Button>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </Card>
           </div>
-)}
+        )}
 
         {/* Treatment Plan Tab */}
         {activeTab === "treatment" && (
           <TreatmentTimeline patientId={patient.Id} />
         )}
-
         {/* Medical History Tab */}
         {activeTab === "history" && (
           <Card className="p-6">
