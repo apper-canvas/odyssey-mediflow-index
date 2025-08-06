@@ -1,0 +1,212 @@
+[
+  {
+    "Id": 1,
+    "firstName": "Sarah",
+    "lastName": "Johnson",
+    "dateOfBirth": "1985-03-15",
+    "phone": "(555) 123-4567",
+    "email": "sarah.johnson@email.com",
+    "address": "123 Main St, Springfield, IL 62701",
+    "emergencyContact": {
+      "name": "Michael Johnson",
+      "phone": "(555) 123-4568",
+      "relationship": "Spouse"
+    },
+    "medicalHistory": [
+      "Hypertension",
+      "Type 2 Diabetes"
+    ],
+    "allergies": [
+      "Penicillin",
+      "Shellfish"
+    ],
+    "currentMedications": [
+      "Metformin 500mg twice daily",
+      "Lisinopril 10mg daily"
+    ],
+    "createdAt": "2023-01-15",
+    "lastVisit": "2024-01-10"
+  },
+  {
+    "Id": 2,
+    "firstName": "Michael",
+    "lastName": "Chen",
+    "dateOfBirth": "1978-07-22",
+    "phone": "(555) 234-5678",
+    "email": "m.chen@email.com",
+    "address": "456 Oak Ave, Springfield, IL 62702",
+    "emergencyContact": {
+      "name": "Lisa Chen",
+      "phone": "(555) 234-5679",
+      "relationship": "Wife"
+    },
+    "medicalHistory": [
+      "Asthma",
+      "Seasonal Allergies"
+    ],
+    "allergies": [
+      "Pollen",
+      "Dust mites"
+    ],
+    "currentMedications": [
+      "Albuterol inhaler as needed",
+      "Claritin 10mg daily"
+    ],
+    "createdAt": "2023-02-20",
+    "lastVisit": "2024-01-08"
+  },
+  {
+    "Id": 3,
+    "firstName": "Emily",
+    "lastName": "Rodriguez",
+    "dateOfBirth": "1992-11-30",
+    "phone": "(555) 345-6789",
+    "email": "emily.rodriguez@email.com",
+    "address": "789 Pine St, Springfield, IL 62703",
+    "emergencyContact": {
+      "name": "Carlos Rodriguez",
+      "phone": "(555) 345-6790",
+      "relationship": "Father"
+    },
+    "medicalHistory": [
+      "Migraine headaches"
+    ],
+    "allergies": [],
+    "currentMedications": [
+      "Sumatriptan 50mg as needed"
+    ],
+    "createdAt": "2023-03-10",
+    "lastVisit": "2024-01-05"
+  },
+  {
+    "Id": 4,
+    "firstName": "Robert",
+    "lastName": "Wilson",
+    "dateOfBirth": "1965-09-12",
+    "phone": "(555) 456-7890",
+    "email": "bob.wilson@email.com",
+    "address": "321 Elm St, Springfield, IL 62704",
+    "emergencyContact": {
+      "name": "Mary Wilson",
+      "phone": "(555) 456-7891",
+      "relationship": "Wife"
+    },
+    "medicalHistory": [
+      "High cholesterol",
+      "Osteoarthritis",
+      "Previous heart attack (2015)"
+    ],
+    "allergies": [
+      "Aspirin"
+    ],
+    "currentMedications": [
+      "Atorvastatin 20mg daily",
+      "Clopidogrel 75mg daily",
+      "Ibuprofen 400mg as needed"
+    ],
+    "createdAt": "2023-04-05",
+    "lastVisit": "2023-12-20"
+  },
+  {
+    "Id": 5,
+    "firstName": "Jennifer",
+    "lastName": "Davis",
+    "dateOfBirth": "1980-06-08",
+    "phone": "(555) 567-8901",
+    "email": "jennifer.davis@email.com",
+    "address": "654 Cedar Ln, Springfield, IL 62705",
+    "emergencyContact": {
+      "name": "James Davis",
+      "phone": "(555) 567-8902",
+      "relationship": "Husband"
+    },
+    "medicalHistory": [
+      "Anxiety disorder",
+      "Hypothyroidism"
+    ],
+    "allergies": [
+      "Latex"
+    ],
+    "currentMedications": [
+      "Levothyroxine 75mcg daily",
+      "Sertraline 50mg daily"
+    ],
+    "createdAt": "2023-05-18",
+    "lastVisit": "2023-12-15"
+  },
+  {
+    "Id": 6,
+    "firstName": "David",
+    "lastName": "Thompson",
+    "dateOfBirth": "1975-04-25",
+    "phone": "(555) 678-9012",
+    "email": "david.thompson@email.com",
+    "address": "987 Maple Dr, Springfield, IL 62706",
+    "emergencyContact": {
+      "name": "Susan Thompson",
+      "phone": "(555) 678-9013",
+      "relationship": "Wife"
+    },
+    "medicalHistory": [
+      "GERD",
+      "Sleep apnea"
+    ],
+    "allergies": [],
+    "currentMedications": [
+      "Omeprazole 20mg daily"
+    ],
+    "createdAt": "2023-06-12",
+    "lastVisit": "2023-11-30"
+  },
+  {
+    "Id": 7,
+    "firstName": "Lisa",
+    "lastName": "Anderson",
+    "dateOfBirth": "1988-12-14",
+    "phone": "(555) 789-0123",
+    "email": "lisa.anderson@email.com",
+    "address": "147 Birch St, Springfield, IL 62707",
+    "emergencyContact": {
+      "name": "Mark Anderson",
+      "phone": "(555) 789-0124",
+      "relationship": "Husband"
+    },
+    "medicalHistory": [
+      "Iron deficiency anemia"
+    ],
+    "allergies": [
+      "Codeine"
+    ],
+    "currentMedications": [
+      "Iron sulfate 325mg daily"
+    ],
+    "createdAt": "2023-07-08",
+    "lastVisit": "2023-11-15"
+  },
+  {
+    "Id": 8,
+    "firstName": "James",
+    "lastName": "Martinez",
+    "dateOfBirth": "1970-08-03",
+    "phone": "(555) 890-1234",
+    "email": "james.martinez@email.com",
+    "address": "258 Spruce Ave, Springfield, IL 62708",
+    "emergencyContact": {
+      "name": "Maria Martinez",
+      "phone": "(555) 890-1235",
+      "relationship": "Wife"
+    },
+    "medicalHistory": [
+      "Chronic back pain",
+      "Kidney stones"
+    ],
+    "allergies": [
+      "Morphine"
+    ],
+    "currentMedications": [
+      "Naproxen 500mg twice daily"
+    ],
+    "createdAt": "2023-08-22",
+    "lastVisit": "2023-10-28"
+  }
+]

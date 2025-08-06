@@ -1,0 +1,122 @@
+[
+  {
+    "Id": 1,
+    "patientId": 1,
+    "doctorId": "dr-sarah-chen",
+    "date": "2024-01-15",
+    "time": "09:00",
+    "duration": 30,
+    "type": "Follow-up",
+    "status": "Completed",
+    "notes": "Routine diabetes follow-up. Blood sugar levels stable.",
+    "createdAt": "2024-01-10"
+  },
+  {
+    "Id": 2,
+    "patientId": 2,
+    "doctorId": "dr-sarah-chen",
+    "date": "2024-01-15",
+    "time": "10:00",
+    "duration": 45,
+    "type": "Consultation",
+    "status": "Completed",
+    "notes": "New patient consultation for asthma management.",
+    "createdAt": "2024-01-08"
+  },
+  {
+    "Id": 3,
+    "patientId": 3,
+    "doctorId": "dr-sarah-chen",
+    "date": "2024-01-16",
+    "time": "14:00",
+    "duration": 30,
+    "type": "Follow-up",
+    "status": "Confirmed",
+    "notes": "Migraine treatment follow-up.",
+    "createdAt": "2024-01-12"
+  },
+  {
+    "Id": 4,
+    "patientId": 4,
+    "doctorId": "dr-sarah-chen",
+    "date": "2024-01-16",
+    "time": "15:30",
+    "duration": 60,
+    "type": "Check-up",
+    "status": "Scheduled",
+    "notes": "Annual physical examination.",
+    "createdAt": "2024-01-09"
+  },
+  {
+    "Id": 5,
+    "patientId": 5,
+    "doctorId": "dr-sarah-chen",
+    "date": "2024-01-17",
+    "time": "11:00",
+    "duration": 30,
+    "type": "Follow-up",
+    "status": "Scheduled",
+    "notes": "Anxiety medication adjustment follow-up.",
+    "createdAt": "2024-01-11"
+  },
+  {
+    "Id": 6,
+    "patientId": 6,
+    "doctorId": "dr-sarah-chen",
+    "date": "2024-01-17",
+    "time": "13:00",
+    "duration": 45,
+    "type": "Consultation",
+    "status": "Confirmed",
+    "notes": "GERD symptoms evaluation.",
+    "createdAt": "2024-01-13"
+  },
+  {
+    "Id": 7,
+    "patientId": 7,
+    "doctorId": "dr-sarah-chen",
+    "date": "2024-01-18",
+    "time": "09:30",
+    "duration": 30,
+    "type": "Follow-up",
+    "status": "Scheduled",
+    "notes": "Iron deficiency anemia progress check.",
+    "createdAt": "2024-01-14"
+  },
+  {
+    "Id": 8,
+    "patientId": 8,
+    "doctorId": "dr-sarah-chen",
+    "date": "2024-01-18",
+    "time": "16:00",
+    "duration": 45,
+    "type": "Consultation",
+    "status": "Scheduled",
+    "notes": "Chronic pain management consultation.",
+    "createdAt": "2024-01-10"
+  },
+  {
+    "Id": 9,
+    "patientId": 1,
+    "doctorId": "dr-sarah-chen",
+    "date": "2024-01-19",
+    "time": "10:30",
+    "duration": 30,
+    "type": "Check-up",
+    "status": "Scheduled",
+    "notes": "Blood pressure monitoring.",
+    "createdAt": "2024-01-15"
+  },
+  {
+    "Id": 10,
+    "patientId": 3,
+    "doctorId": "dr-sarah-chen",
+    "date": "2024-01-20",
+    "time": "14:30",
+    "duration": 60,
+    "type": "Emergency",
+    "status": "Cancelled",
+    "notes": "Severe migraine - patient cancelled, went to ER.",
+    "createdAt": "2024-01-20"
+  }
+]
