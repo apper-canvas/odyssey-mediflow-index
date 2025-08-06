@@ -6,6 +6,7 @@ import Card from "@/components/atoms/Card";
 import Select from "@/components/atoms/Select";
 import Button from "@/components/atoms/Button";
 import ApperIcon from "@/components/ApperIcon";
+import ExportModal from "@/components/organisms/ExportModal";
 import { patientService } from "@/services/api/patientService";
 import { appointmentService } from "@/services/api/appointmentService";
 import { clinicalNoteService } from "@/services/api/clinicalNoteService";
@@ -19,6 +20,7 @@ const Reports = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [timeRange, setTimeRange] = useState("month");
+  const [showExportModal, setShowExportModal] = useState(false);
 
   useEffect(() => {
     loadReportData();
@@ -217,7 +219,11 @@ const Reports = () => {
             <option value="year">Last Year</option>
           </Select>
           
-          <Button variant="outline" size="sm">
+<Button 
+            variant="outline" 
+            size="sm"
+            onClick={() => setShowExportModal(true)}
+          >
             <ApperIcon name="Download" size={16} className="mr-2" />
             Export
           </Button>
@@ -395,7 +401,14 @@ const Reports = () => {
             <div className="text-sm text-slate-600">Hours Scheduled</div>
           </div>
         </div>
-      </Card>
+</Card>
+
+      {/* Export Modal */}
+      <ExportModal
+        isOpen={showExportModal}
+        onClose={() => setShowExportModal(false)}
+        dataType="reports"
+      />
     </div>
   );
 };

@@ -9,6 +9,7 @@ import Button from "@/components/atoms/Button";
 import Select from "@/components/atoms/Select";
 import ApperIcon from "@/components/ApperIcon";
 import { patientService } from "@/services/api/patientService";
+import ExportModal from "@/components/organisms/ExportModal";
 import { toast } from "react-toastify";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -17,7 +18,8 @@ const Patients = () => {
   const [filteredPatients, setFilteredPatients] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [showForm, setShowForm] = useState(false);
+const [showForm, setShowForm] = useState(false);
+  const [showExportModal, setShowExportModal] = useState(false);
   const [sortBy, setSortBy] = useState("name");
   const [filterBy, setFilterBy] = useState("all");
   const { searchValue } = useOutletContext() || { searchValue: "" };
@@ -118,15 +120,24 @@ const Patients = () => {
           <p className="mt-2 text-slate-600">
             Manage your patient database and medical records.
           </p>
+</div>
+        <div className="flex items-center space-x-3 mt-4 lg:mt-0">
+          <Button 
+            variant="outline" 
+            onClick={() => setShowExportModal(true)}
+            size="sm"
+          >
+            <ApperIcon name="Download" size={16} className="mr-2" />
+            Export
+          </Button>
+          <Button 
+            variant="primary" 
+            onClick={() => setShowForm(true)}
+          >
+            <ApperIcon name="UserPlus" size={16} className="mr-2" />
+            Add Patient
+          </Button>
         </div>
-        <Button 
-          variant="primary" 
-          onClick={() => setShowForm(true)}
-          className="mt-4 lg:mt-0"
-        >
-          <ApperIcon name="UserPlus" size={16} className="mr-2" />
-          Add Patient
-        </Button>
       </div>
 
       {/* Filters */}
@@ -184,33 +195,40 @@ const Patients = () => {
 
       {/* Patients Grid */}
       {filteredPatients.length === 0 ? (
-        <Empty
-          title="No patients found"
-          description={searchValue ? "Try adjusting your search or filters." : "Start by adding your first patient to the system."}
-          icon="Users"
-          actionLabel="Add Patient"
-          onAction={() => setShowForm(true)}
-        />
-      ) : (
-        <motion.div 
-          className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ staggerChildren: 0.1 }}
-        >
-          {filteredPatients.map((patient, index) => (
-            <motion.div
-              key={patient.Id}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.05 }}
-            >
-              <PatientCard patient={patient} />
-            </motion.div>
-          ))}
-        </motion.div>
-      )}
-    </div>
+<Empty
+        title="No patients found"
+        description={searchValue ? "Try adjusting your search or filters." : "Start by adding your first patient to the system."}
+        icon="Users"
+        actionLabel="Add Patient"
+        onAction={() => setShowForm(true)}
+      />
+    ) : (
+      <motion.div 
+        className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ staggerChildren: 0.1 }}
+      >
+        {filteredPatients.map((patient, index) => (
+          <motion.div
+            key={patient.Id}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: index * 0.05 }}
+          >
+            <PatientCard patient={patient} />
+          </motion.div>
+        ))}
+      </motion.div>
+    )}
+
+    {/* Export Modal */}
+    <ExportModal
+      isOpen={showExportModal}
+      onClose={() => setShowExportModal(false)}
+      dataType="patients"
+    />
+  </div>
   );
 };
 
