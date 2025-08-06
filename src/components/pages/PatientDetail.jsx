@@ -46,7 +46,19 @@ const [newNote, setNewNote] = useState({
     frequency: "",
     duration: "",
     instructions: "",
-    refills: 0
+refills: 0
+  });
+
+  // Billing state hooks - must be at component top level
+  const [newBilling, setNewBilling] = useState({
+    amount: '',
+    items: [{ description: '', quantity: 1, unitPrice: '', total: 0 }],
+    dueDate: '',
+    notes: ''
+  });
+  const [showBillingForm, setShowBillingForm] = useState(false);
+  const [paymentData, setPaymentData] = useState({
+    paymentMethod: 'credit_card'
   });
   useEffect(() => {
     loadPatientData();
@@ -243,16 +255,6 @@ const handleDocumentUpload = async (files) => {
     }
   };
 // Billing functions
-  const [newBilling, setNewBilling] = useState({
-    amount: '',
-    items: [{ description: '', quantity: 1, unitPrice: '', total: 0 }],
-    dueDate: '',
-    notes: ''
-  });
-  const [showBillingForm, setShowBillingForm] = useState(false);
-  const [paymentData, setPaymentData] = useState({
-    paymentMethod: 'credit_card'
-  });
 
   const handleAddBilling = async () => {
     try {
