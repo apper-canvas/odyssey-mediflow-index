@@ -6,8 +6,8 @@ import Dashboard from "@/components/pages/Dashboard";
 import Patients from "@/components/pages/Patients";
 import PatientDetail from "@/components/pages/PatientDetail";
 import Appointments from "@/components/pages/Appointments";
+import Doctors from "@/components/pages/Doctors";
 import Reports from "@/components/pages/Reports";
-
 function App() {
   return (
 <BrowserRouter>
@@ -18,6 +18,7 @@ function App() {
             <Route path="patients" element={<Patients />} />
             <Route path="patients/:id" element={<PatientDetail />} />
             <Route path="appointments" element={<Appointments />} />
+            <Route path="doctors" element={<Doctors />} />
             <Route path="reports" element={<Reports />} />
           </Route>
         </Routes>
