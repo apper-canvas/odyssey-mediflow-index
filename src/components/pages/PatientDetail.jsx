@@ -10,6 +10,8 @@ import ApperIcon from "@/components/ApperIcon";
 import { patientService } from "@/services/api/patientService";
 import { appointmentService } from "@/services/api/appointmentService";
 import { clinicalNoteService } from "@/services/api/clinicalNoteService";
+import { documentService } from "@/services/api/documentService";
+import DocumentUpload from "@/components/organisms/DocumentUpload";
 import { toast } from "react-toastify";
 import { format } from "date-fns";
 
@@ -18,7 +20,8 @@ const PatientDetail = () => {
   const navigate = useNavigate();
   const [patient, setPatient] = useState(null);
   const [appointments, setAppointments] = useState([]);
-  const [clinicalNotes, setClinicalNotes] = useState([]);
+const [clinicalNotes, setClinicalNotes] = useState([]);
+  const [documents, setDocuments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [activeTab, setActiveTab] = useState("overview");
@@ -37,12 +40,13 @@ const PatientDetail = () => {
   const loadPatientData = async () => {
     try {
       setLoading(true);
-      setError("");
+setError("");
       
-      const [patientData, appointmentsData, notesData] = await Promise.all([
+      const [patientData, appointmentsData, notesData, documentsData] = await Promise.all([
         patientService.getById(parseInt(id)),
         appointmentService.getAll(),
-        clinicalNoteService.getAll()
+        clinicalNoteService.getAll(),
+        patientService.getDocuments(parseInt(id))
       ]);
 
       if (!patientData) {
@@ -58,6 +62,7 @@ const PatientDetail = () => {
       
       setAppointments(patientAppointments);
       setClinicalNotes(patientNotes);
+      setDocuments(documentsData);
       
     } catch (err) {
       console.error("Failed to load patient data:", err);
@@ -112,10 +117,33 @@ const PatientDetail = () => {
   if (error) return <Error message={error} onRetry={loadPatientData} />;
   if (!patient) return <Error message="Patient not found" />;
 
+const handleDocumentUpload = async (files) => {
+    try {
+      const uploadedDocs = await patientService.addDocuments(parseInt(id), files);
+      setDocuments(prev => [...prev, ...uploadedDocs]);
+      toast.success(`${files.length} document(s) uploaded successfully`);
+    } catch (error) {
+      console.error("Failed to upload documents:", error);
+      toast.error("Failed to upload documents. Please try again.");
+    }
+  };
+
+  const handleDeleteDocument = async (documentId) => {
+    try {
+      await patientService.deleteDocument(parseInt(id), documentId);
+      setDocuments(prev => prev.filter(doc => doc.Id !== documentId));
+      toast.success("Document deleted successfully");
+    } catch (error) {
+      console.error("Failed to delete document:", error);
+      toast.error("Failed to delete document. Please try again.");
+    }
+  };
+
   const tabs = [
     { id: "overview", name: "Overview", icon: "User" },
     { id: "appointments", name: "Appointments", icon: "Calendar" },
     { id: "notes", name: "Clinical Notes", icon: "FileText" },
+    { id: "documents", name: "Documents", icon: "FolderOpen" },
     { id: "history", name: "Medical History", icon: "Activity" }
   ];
 
@@ -441,6 +469,101 @@ const PatientDetail = () => {
               )}
             </Card>
           </div>
+)}
+
+        {/* Documents Tab */}
+        {activeTab === "documents" && (
+          <div className="space-y-6">
+            <DocumentUpload 
+              onUpload={handleDocumentUpload}
+              patientName={patient?.name}
+            />
+            
+            {documents.length > 0 && (
+              <Card className="p-6">
+                <h3 className="text-lg font-semibold text-slate-800 mb-4">
+                  Patient Documents ({documents.length})
+                </h3>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {documents.map((doc) => (
+                    <div key={doc.Id} className="border border-slate-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+                      <div className="flex items-start justify-between mb-3">
+                        <div className="flex items-center space-x-3">
+                          <div className="w-12 h-12 bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg flex items-center justify-center">
+                            <ApperIcon 
+                              name={doc.type === 'pdf' ? 'FileText' : 'Image'} 
+                              size={20} 
+                              className="text-blue-600" 
+                            />
+                          </div>
+                          <div>
+                            <p className="font-medium text-slate-800 text-sm truncate max-w-[120px]">
+                              {doc.name}
+                            </p>
+                            <p className="text-xs text-slate-500">
+                              {(doc.size / 1024 / 1024).toFixed(2)} MB
+                            </p>
+                          </div>
+                        </div>
+                        
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleDeleteDocument(doc.Id)}
+                          className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                        >
+                          <ApperIcon name="Trash2" size={16} />
+                        </Button>
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between">
+                          <Badge variant={doc.category === 'Lab Reports' ? 'success' : doc.category === 'Imaging' ? 'info' : 'secondary'}>
+                            {doc.category}
+                          </Badge>
+                          <span className="text-xs text-slate-500">
+                            {format(new Date(doc.uploadedAt), 'MMM dd, yyyy')}
+                          </span>
+                        </div>
+                        
+                        {doc.preview && (
+                          <div className="w-full h-24 bg-slate-50 rounded border overflow-hidden">
+                            <img 
+                              src={doc.preview} 
+                              alt={doc.name}
+                              className="w-full h-full object-cover"
+                            />
+                          </div>
+                        )}
+                        
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="w-full"
+                          onClick={() => window.open(doc.url, '_blank')}
+                        >
+                          <ApperIcon name="Eye" size={14} className="mr-2" />
+                          View Document
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </Card>
+            )}
+          </div>
+        )}
+
+        {/* Medical History Tab */}
+        {activeTab === "history" && (
+          <Card className="p-6">
+            <h3 className="text-lg font-semibold text-slate-800 mb-4">Medical History</h3>
+            <div className="text-center py-12">
+              <ApperIcon name="Activity" size={48} className="text-slate-400 mx-auto mb-4" />
+              <p className="text-slate-500">Medical history tracking coming soon</p>
+            </div>
+          </Card>
         )}
       </div>
     </div>
