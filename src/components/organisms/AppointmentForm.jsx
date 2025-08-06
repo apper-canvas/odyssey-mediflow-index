@@ -13,8 +13,16 @@ const AppointmentForm = ({ appointment, onSubmit, onCancel }) => {
     date: appointment?.date || "",
     time: appointment?.time || "",
     duration: appointment?.duration || 30,
-    type: appointment?.type || "",
-    notes: appointment?.notes || ""
+type: appointment?.type || "",
+    notes: appointment?.notes || "",
+    reminderConfig: appointment?.reminderConfig || {
+      enabled: true,
+      type: "email",
+      dayBefore: true,
+      hourBefore: false,
+      customTime: false,
+      customMinutes: 60
+    }
   });
   
   const [patients, setPatients] = useState([]);
@@ -47,13 +55,19 @@ const AppointmentForm = ({ appointment, onSubmit, onCancel }) => {
     }));
   };
 
-  const appointmentTypes = [
+const appointmentTypes = [
     "Consultation",
     "Follow-up",
     "Check-up",
     "Surgery",
     "Emergency",
     "Therapy"
+  ];
+
+  const reminderTypes = [
+    { value: "email", label: "Email Only" },
+    { value: "sms", label: "SMS Only" },
+    { value: "both", label: "Email & SMS" }
   ];
 
   return (
@@ -99,8 +113,10 @@ const AppointmentForm = ({ appointment, onSubmit, onCancel }) => {
                 {type}
               </option>
             ))}
-          </Select>
+</Select>
+        </div>
 
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <Input
             label="Date"
             type="date"
@@ -130,7 +146,7 @@ const AppointmentForm = ({ appointment, onSubmit, onCancel }) => {
             <option value={90}>1.5 hours</option>
             <option value={120}>2 hours</option>
           </Select>
-        </div>
+</div>
 
         <TextArea
           label="Notes"
@@ -139,6 +155,100 @@ const AppointmentForm = ({ appointment, onSubmit, onCancel }) => {
           placeholder="Additional notes about this appointment..."
           rows={3}
         />
+
+        {/* Reminder Configuration */}
+        <div className="border-t border-slate-200 pt-6">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-medium text-slate-900">Appointment Reminders</h3>
+            <label className="flex items-center">
+              <input
+                type="checkbox"
+                checked={formData.reminderConfig.enabled}
+                onChange={(e) => handleChange("reminderConfig", {
+                  ...formData.reminderConfig,
+                  enabled: e.target.checked
+                })}
+                className="mr-2"
+              />
+              <span className="text-sm text-slate-700">Enable reminders</span>
+            </label>
+          </div>
+
+          {formData.reminderConfig.enabled && (
+            <div className="space-y-4">
+              <Select
+                label="Reminder Method"
+                value={formData.reminderConfig.type}
+                onChange={(e) => handleChange("reminderConfig", {
+                  ...formData.reminderConfig,
+                  type: e.target.value
+                })}
+              >
+                {reminderTypes.map(type => (
+                  <option key={type.value} value={type.value}>
+                    {type.label}
+                  </option>
+                ))}
+              </Select>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <label className="flex items-center">
+                  <input
+                    type="checkbox"
+                    checked={formData.reminderConfig.dayBefore}
+                    onChange={(e) => handleChange("reminderConfig", {
+                      ...formData.reminderConfig,
+                      dayBefore: e.target.checked
+                    })}
+                    className="mr-2"
+                  />
+                  <span className="text-sm text-slate-700">24 hours before</span>
+                </label>
+
+                <label className="flex items-center">
+                  <input
+                    type="checkbox"
+                    checked={formData.reminderConfig.hourBefore}
+                    onChange={(e) => handleChange("reminderConfig", {
+                      ...formData.reminderConfig,
+                      hourBefore: e.target.checked
+                    })}
+                    className="mr-2"
+                  />
+                  <span className="text-sm text-slate-700">1 hour before</span>
+                </label>
+
+                <label className="flex items-center">
+                  <input
+                    type="checkbox"
+                    checked={formData.reminderConfig.customTime}
+                    onChange={(e) => handleChange("reminderConfig", {
+                      ...formData.reminderConfig,
+                      customTime: e.target.checked
+                    })}
+                    className="mr-2"
+                  />
+                  <span className="text-sm text-slate-700">Custom time</span>
+                </label>
+              </div>
+
+              {formData.reminderConfig.customTime && (
+                <Input
+                  label="Minutes before appointment"
+                  type="number"
+                  min="15"
+                  max="1440"
+                  value={formData.reminderConfig.customMinutes}
+                  onChange={(e) => handleChange("reminderConfig", {
+                    ...formData.reminderConfig,
+                    customMinutes: parseInt(e.target.value) || 60
+                  })}
+                  placeholder="60"
+                />
+              )}
+            </div>
+          )}
+        </div>
 
         <div className="flex justify-end space-x-4 pt-6 border-t border-slate-200">
           <Button variant="secondary" onClick={onCancel}>

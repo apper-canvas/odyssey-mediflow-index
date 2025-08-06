@@ -1,4 +1,11 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
+import { appointmentService } from "@/services/api/appointmentService";
+import { patientService } from "@/services/api/patientService";
+import { waitlistService } from "@/services/api/waitlistService";
+import { toast } from "react-toastify";
+import { AnimatePresence, motion } from "framer-motion";
+import { format, isThisWeek, isToday, isTomorrow } from "date-fns";
+import ApperIcon from "@/components/ApperIcon";
 import AppointmentCard from "@/components/molecules/AppointmentCard";
 import AppointmentForm from "@/components/organisms/AppointmentForm";
 import Loading from "@/components/ui/Loading";
@@ -7,13 +14,6 @@ import Empty from "@/components/ui/Empty";
 import Button from "@/components/atoms/Button";
 import Select from "@/components/atoms/Select";
 import Card from "@/components/atoms/Card";
-import ApperIcon from "@/components/ApperIcon";
-import { appointmentService } from "@/services/api/appointmentService";
-import { patientService } from "@/services/api/patientService";
-import { waitlistService } from "@/services/api/waitlistService";
-import { toast } from "react-toastify";
-import { motion, AnimatePresence } from "framer-motion";
-import { format, isToday, isTomorrow, isThisWeek } from "date-fns";
 
 const Appointments = () => {
 const [appointments, setAppointments] = useState([]);
@@ -157,7 +157,7 @@ const loadAppointments = async () => {
     setFilteredAppointments(filtered);
   };
 
-  const handleAddAppointment = async (appointmentData) => {
+const handleAddAppointment = async (appointmentData) => {
     try {
       const newAppointment = await appointmentService.create({
         ...appointmentData,
@@ -165,16 +165,29 @@ const loadAppointments = async () => {
         doctorId: "dr-sarah-chen"
       });
       
+      // Schedule reminders if enabled
+      if (appointmentData.reminderConfig?.enabled) {
+        try {
+          const { reminderService } = await import('@/services/api/reminderService');
+          await reminderService.scheduleAppointmentReminders(newAppointment, appointmentData.reminderConfig);
+          toast.success("Appointment scheduled with reminders");
+        } catch (reminderErr) {
+          console.error("Failed to schedule reminders:", reminderErr);
+          toast.warning("Appointment scheduled but reminders failed to setup");
+        }
+      } else {
+        toast.success("Appointment scheduled successfully");
+      }
+      
       setAppointments(prev => [newAppointment, ...prev]);
       setShowForm(false);
-      toast.success("Appointment scheduled successfully");
     } catch (err) {
       console.error("Failed to schedule appointment:", err);
       toast.error("Failed to schedule appointment");
     }
   };
 
-const handleStatusChange = async (appointmentId, newStatus) => {
+  const handleStatusChange = async (appointmentId, newStatus) => {
     try {
       if (newStatus === "AddToWaitlist") {
         const appointment = appointments.find(apt => apt.Id === appointmentId);
@@ -183,6 +196,11 @@ const handleStatusChange = async (appointmentId, newStatus) => {
           await handleWaitlistEnroll(appointment.patientId, appointment.type);
           return;
         }
+      }
+
+      if (newStatus === "SendReminder") {
+        await handleSendReminder(appointmentId);
+        return;
       }
 
       await appointmentService.update(appointmentId, { status: newStatus });
@@ -194,11 +212,12 @@ const handleStatusChange = async (appointmentId, newStatus) => {
       );
       setAppointments(updatedAppointments);
 
-      // If appointment was cancelled, process waitlist queue
+      // If appointment was cancelled, process waitlist queue and cancel reminders
       if (newStatus === "Cancelled") {
         const cancelledAppointment = updatedAppointments.find(apt => apt.Id === appointmentId);
         if (cancelledAppointment) {
           await processWaitlistQueue(cancelledAppointment);
+          await appointmentService.cancelReminders(appointmentId);
         }
       }
 
@@ -209,6 +228,33 @@ const handleStatusChange = async (appointmentId, newStatus) => {
     }
   };
 
+  const handleSendReminder = async (appointmentId) => {
+    try {
+      const appointment = appointments.find(apt => apt.Id === appointmentId);
+      if (!appointment) {
+        throw new Error('Appointment not found');
+      }
+
+      const patient = getPatientById(appointment.patientId);
+      if (!patient) {
+        throw new Error('Patient not found');
+      }
+
+      // Import reminder service dynamically to avoid circular dependencies
+      const { reminderService } = await import('@/services/api/reminderService');
+      
+      await reminderService.sendImmediateReminder(
+        appointmentId, 
+        appointment.patientId, 
+        'email'
+      );
+      
+      toast.success(`Reminder sent to ${patient.firstName} ${patient.lastName}`);
+    } catch (err) {
+      console.error("Failed to send reminder:", err);
+      toast.error(err.message || "Failed to send reminder");
+    }
+  };
   const getPatientById = (patientId) => {
     return patients.find(p => p.Id === patientId);
   };

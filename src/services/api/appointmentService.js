@@ -86,7 +86,7 @@ async delete(id) {
     }));
   },
 
-  async enrollInWaitlist(patientId, appointmentType, preferredDate = null) {
+async enrollInWaitlist(patientId, appointmentType, preferredDate = null) {
     await delay(300);
     // Integration point with waitlist service
     return {
@@ -94,6 +94,32 @@ async delete(id) {
       appointmentType,
       preferredDate,
       enrolledAt: new Date().toISOString()
+    };
+  },
+
+  // Reminder integration methods
+  async scheduleReminders(appointmentId, reminderConfig) {
+    await delay(200);
+    const appointment = await this.getById(appointmentId);
+    if (!appointment) {
+      throw new Error('Appointment not found');
+    }
+    
+    // This would integrate with reminder service
+    return {
+      appointmentId,
+      remindersScheduled: reminderConfig.dayBefore || reminderConfig.hourBefore || reminderConfig.customTime ? 
+        ['24h', '1h'].filter((_, i) => [reminderConfig.dayBefore, reminderConfig.hourBefore][i]) : [],
+      reminderType: reminderConfig.type || 'email'
+    };
+  },
+
+  async cancelReminders(appointmentId) {
+    await delay(200);
+    // This would integrate with reminder service to cancel scheduled reminders
+    return {
+      appointmentId,
+      cancelledReminders: ['24h', '1h'] // Mock cancelled reminder times
     };
   }
 };

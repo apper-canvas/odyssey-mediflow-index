@@ -78,6 +78,14 @@ const AppointmentCard = ({ appointment, patient, onStatusChange }) => {
           >
             Cancel
           </Button>
+          <Button 
+            size="sm" 
+            variant="secondary"
+            onClick={() => onStatusChange(appointment.Id, "SendReminder")}
+          >
+            <ApperIcon name="Bell" size={14} className="mr-1" />
+            Remind
+          </Button>
         </div>
       )}
 
@@ -92,14 +100,24 @@ const AppointmentCard = ({ appointment, patient, onStatusChange }) => {
         </Button>
       )}
 
-      {appointment.status === "Confirmed" && (
-        <Button 
-          size="sm" 
-          variant="success"
-          onClick={() => onStatusChange(appointment.Id, "Completed")}
-        >
-          Mark Complete
-        </Button>
+{appointment.status === "Confirmed" && (
+        <div className="flex space-x-2">
+          <Button 
+            size="sm" 
+            variant="success"
+            onClick={() => onStatusChange(appointment.Id, "Completed")}
+          >
+            Mark Complete
+          </Button>
+          <Button 
+            size="sm" 
+            variant="secondary"
+            onClick={() => onStatusChange(appointment.Id, "SendReminder")}
+          >
+            <ApperIcon name="Bell" size={14} className="mr-1" />
+            Remind
+          </Button>
+        </div>
       )}
     </Card>
   );
