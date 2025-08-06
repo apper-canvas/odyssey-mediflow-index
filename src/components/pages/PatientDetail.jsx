@@ -28,6 +28,7 @@ const [patient, setPatient] = useState(null);
   const [clinicalNotes, setClinicalNotes] = useState([]);
   const [documents, setDocuments] = useState([]);
   const [prescriptions, setPrescriptions] = useState([]);
+  const [billingRecords, setBillingRecords] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [activeTab, setActiveTab] = useState("overview");
@@ -55,11 +56,12 @@ const [newNote, setNewNote] = useState({
     try {
       setLoading(true);
 setError("");
-const [patientData, appointmentsData, notesData, documentsData] = await Promise.all([
+const [patientData, appointmentsData, notesData, documentsData, billingData] = await Promise.all([
         patientService.getById(parseInt(id)),
         appointmentService.getAll(),
         clinicalNoteService.getAll(),
-        patientService.getDocuments(parseInt(id))
+        patientService.getDocuments(parseInt(id)),
+        patientService.getBillingRecords(parseInt(id))
       ]);
 
       // Mock prescription data for the patient
@@ -102,9 +104,9 @@ const [patientData, appointmentsData, notesData, documentsData] = await Promise.
       
       setAppointments(patientAppointments);
 setClinicalNotes(patientNotes);
-      setDocuments(documentsData);
+setDocuments(documentsData);
       setPrescriptions(mockPrescriptions);
-      
+      setBillingRecords(billingData);
     } catch (err) {
       console.error("Failed to load patient data:", err);
       setError("Failed to load patient data. Please try again.");
@@ -240,13 +242,109 @@ const handleDocumentUpload = async (files) => {
       toast.error("Failed to renew prescription");
     }
   };
+// Billing functions
+  const [newBilling, setNewBilling] = useState({
+    amount: '',
+    items: [{ description: '', quantity: 1, unitPrice: '', total: 0 }],
+    dueDate: '',
+    notes: ''
+  });
+  const [showBillingForm, setShowBillingForm] = useState(false);
+  const [paymentData, setPaymentData] = useState({
+    paymentMethod: 'credit_card'
+  });
 
+  const handleAddBilling = async () => {
+    try {
+      const total = newBilling.items.reduce((sum, item) => sum + (item.quantity * parseFloat(item.unitPrice || 0)), 0);
+      const billingData = {
+        patientId: patient.Id,
+        amount: total,
+        items: newBilling.items.filter(item => item.description && item.unitPrice),
+        dueDate: newBilling.dueDate,
+        notes: newBilling.notes,
+        invoiceNumber: `INV-${new Date().getFullYear()}-${String(billingRecords.length + 1).padStart(3, '0')}`
+      };
+      
+      await patientService.createBillingRecord(billingData);
+      const updatedBilling = await patientService.getBillingRecords(patient.Id);
+      setBillingRecords(updatedBilling);
+      setNewBilling({
+        amount: '',
+        items: [{ description: '', quantity: 1, unitPrice: '', total: 0 }],
+        dueDate: '',
+        notes: ''
+      });
+      setShowBillingForm(false);
+      toast.success('Billing record created successfully');
+    } catch (error) {
+      toast.error('Failed to create billing record: ' + error.message);
+    }
+  };
+
+  const handleProcessPayment = async (billingId) => {
+    try {
+      await patientService.processPayment(billingId, paymentData);
+      const updatedBilling = await patientService.getBillingRecords(patient.Id);
+      setBillingRecords(updatedBilling);
+      toast.success('Payment processed successfully');
+    } catch (error) {
+      toast.error('Failed to process payment: ' + error.message);
+    }
+  };
+
+  const handleGenerateInvoice = async (billingId) => {
+    try {
+      const invoice = await patientService.generateInvoice(billingId);
+      toast.success(`Invoice ${invoice.invoiceNumber} generated successfully`);
+    } catch (error) {
+      toast.error('Failed to generate invoice: ' + error.message);
+    }
+  };
+
+  const getBillingStatusColor = (status) => {
+    switch (status) {
+      case 'paid': return 'bg-emerald-100 text-emerald-800';
+      case 'pending': return 'bg-yellow-100 text-yellow-800';
+      case 'overdue': return 'bg-red-100 text-red-800';
+      case 'draft': return 'bg-gray-100 text-gray-800';
+      default: return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  const addBillingItem = () => {
+    setNewBilling(prev => ({
+      ...prev,
+      items: [...prev.items, { description: '', quantity: 1, unitPrice: '', total: 0 }]
+    }));
+  };
+
+  const updateBillingItem = (index, field, value) => {
+    setNewBilling(prev => {
+      const items = [...prev.items];
+      items[index] = { ...items[index], [field]: value };
+      if (field === 'quantity' || field === 'unitPrice') {
+        items[index].total = items[index].quantity * parseFloat(items[index].unitPrice || 0);
+      }
+      return { ...prev, items };
+    });
+  };
+
+  const removeBillingItem = (index) => {
+    if (newBilling.items.length > 1) {
+      setNewBilling(prev => ({
+        ...prev,
+        items: prev.items.filter((_, i) => i !== index)
+      }));
+    }
+  };
 const tabs = [
     { id: "overview", name: "Overview", icon: "User" },
     { id: "appointments", name: "Appointments", icon: "Calendar" },
     { id: "notes", name: "Clinical Notes", icon: "FileText" },
     { id: "documents", name: "Documents", icon: "FolderOpen" },
     { id: "prescriptions", name: "Prescriptions", icon: "Pill" },
+    { id: "billing", name: "Billing", icon: "CreditCard" },
     { id: "treatment", name: "Treatment Plan", icon: "Target" },
     { id: "history", name: "Medical History", icon: "Activity" }
   ];
@@ -805,6 +903,189 @@ const tabs = [
                 </div>
               )}
             </Card>
+          </div>
+        )}
+{/* Billing Tab */}
+        {activeTab === "billing" && (
+          <div className="space-y-6">
+            <div className="flex justify-between items-center">
+              <h3 className="text-lg font-semibold text-slate-900">Billing & Invoicing</h3>
+              <Button onClick={() => setShowBillingForm(true)}>
+                <ApperIcon name="Plus" size={16} className="mr-2" />
+                Create Invoice
+              </Button>
+            </div>
+
+            {showBillingForm && (
+              <Card className="p-6">
+                <h4 className="text-md font-semibold text-slate-900 mb-4">New Billing Record</h4>
+                <div className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-1">Due Date</label>
+                      <Input
+                        type="date"
+                        value={newBilling.dueDate}
+                        onChange={(e) => setNewBilling(prev => ({ ...prev, dueDate: e.target.value }))}
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-2">Items</label>
+                    {newBilling.items.map((item, index) => (
+                      <div key={index} className="flex gap-2 mb-2">
+                        <Input
+                          placeholder="Description"
+                          value={item.description}
+                          onChange={(e) => updateBillingItem(index, 'description', e.target.value)}
+                          className="flex-1"
+                        />
+                        <Input
+                          type="number"
+                          placeholder="Qty"
+                          value={item.quantity}
+                          onChange={(e) => updateBillingItem(index, 'quantity', parseInt(e.target.value) || 1)}
+                          className="w-16"
+                        />
+                        <Input
+                          type="number"
+                          step="0.01"
+                          placeholder="Price"
+                          value={item.unitPrice}
+                          onChange={(e) => updateBillingItem(index, 'unitPrice', e.target.value)}
+                          className="w-24"
+                        />
+                        <div className="w-20 flex items-center px-2 text-sm text-slate-600">
+                          ${item.total.toFixed(2)}
+                        </div>
+                        {newBilling.items.length > 1 && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => removeBillingItem(index)}
+                          >
+                            <ApperIcon name="X" size={14} />
+                          </Button>
+                        )}
+                      </div>
+                    ))}
+                    <Button variant="ghost" size="sm" onClick={addBillingItem}>
+                      <ApperIcon name="Plus" size={14} className="mr-1" />
+                      Add Item
+                    </Button>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">Notes</label>
+                    <TextArea
+                      placeholder="Additional notes..."
+                      value={newBilling.notes}
+                      onChange={(e) => setNewBilling(prev => ({ ...prev, notes: e.target.value }))}
+                      rows={3}
+                    />
+                  </div>
+
+                  <div className="flex justify-between items-center pt-4 border-t">
+                    <div className="text-lg font-semibold">
+                      Total: ${newBilling.items.reduce((sum, item) => sum + item.total, 0).toFixed(2)}
+                    </div>
+                    <div className="space-x-2">
+                      <Button variant="ghost" onClick={() => setShowBillingForm(false)}>Cancel</Button>
+                      <Button onClick={handleAddBilling}>Create Invoice</Button>
+                    </div>
+                  </div>
+                </div>
+              </Card>
+            )}
+
+            <div className="space-y-4">
+              {billingRecords.map((record) => (
+                <Card key={record.Id} className="p-6">
+                  <div className="flex justify-between items-start mb-4">
+                    <div>
+                      <h4 className="font-semibold text-slate-900">{record.invoiceNumber}</h4>
+                      <p className="text-sm text-slate-600">
+                        Date: {format(new Date(record.date), 'MMM dd, yyyy')} | 
+                        Due: {format(new Date(record.dueDate), 'MMM dd, yyyy')}
+                      </p>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Badge className={getBillingStatusColor(record.status)}>
+                        {record.status.charAt(0).toUpperCase() + record.status.slice(1)}
+                      </Badge>
+                      <span className="text-lg font-semibold">${record.amount.toFixed(2)}</span>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2 mb-4">
+                    {record.items.map((item, index) => (
+                      <div key={index} className="flex justify-between text-sm">
+                        <span>{item.description} (x{item.quantity})</span>
+                        <span>${item.total.toFixed(2)}</span>
+                      </div>
+                    ))}
+                  </div>
+
+                  {record.notes && (
+                    <p className="text-sm text-slate-600 mb-4">{record.notes}</p>
+                  )}
+
+                  {record.status === 'paid' && record.paidDate && (
+                    <div className="text-sm text-emerald-600 mb-4">
+                      <ApperIcon name="Check" size={14} className="inline mr-1" />
+                      Paid on {format(new Date(record.paidDate), 'MMM dd, yyyy')} via {record.paymentMethod.replace('_', ' ')}
+                    </div>
+                  )}
+
+                  <div className="flex space-x-2 pt-4 border-t">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleGenerateInvoice(record.Id)}
+                    >
+                      <ApperIcon name="Download" size={14} className="mr-1" />
+                      Download
+                    </Button>
+                    {record.status !== 'paid' && (
+                      <>
+                        <Select
+                          value={paymentData.paymentMethod}
+                          onChange={(e) => setPaymentData(prev => ({ ...prev, paymentMethod: e.target.value }))}
+                          className="w-32"
+                        >
+                          <option value="credit_card">Credit Card</option>
+                          <option value="debit_card">Debit Card</option>
+                          <option value="cash">Cash</option>
+                          <option value="check">Check</option>
+                          <option value="insurance">Insurance</option>
+                        </Select>
+                        <Button
+                          size="sm"
+                          onClick={() => handleProcessPayment(record.Id)}
+                          className="bg-emerald-600 hover:bg-emerald-700"
+                        >
+                          <ApperIcon name="CreditCard" size={14} className="mr-1" />
+                          Process Payment
+                        </Button>
+                      </>
+                    )}
+                  </div>
+                </Card>
+              ))}
+
+              {billingRecords.length === 0 && (
+                <Card className="p-8 text-center">
+                  <ApperIcon name="Receipt" size={48} className="mx-auto text-slate-300 mb-4" />
+                  <h3 className="text-lg font-medium text-slate-900 mb-2">No Billing Records</h3>
+                  <p className="text-slate-500 mb-4">Start by creating your first invoice for this patient.</p>
+                  <Button onClick={() => setShowBillingForm(true)}>
+                    <ApperIcon name="Plus" size={16} className="mr-2" />
+                    Create First Invoice
+                  </Button>
+                </Card>
+              )}
+            </div>
           </div>
         )}
 

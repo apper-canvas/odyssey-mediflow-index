@@ -10,7 +10,7 @@ import Reports from "@/components/pages/Reports";
 
 function App() {
   return (
-    <BrowserRouter>
+<BrowserRouter>
       <div className="min-h-screen bg-slate-50">
         <Routes>
           <Route path="/" element={<Layout />}>

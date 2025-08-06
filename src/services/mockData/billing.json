@@ -1,0 +1,100 @@
+[
+  {
+    "Id": 1,
+    "patientId": 1,
+    "invoiceNumber": "INV-2024-001",
+    "date": "2024-01-15",
+    "dueDate": "2024-02-14",
+    "status": "paid",
+    "amount": 250.00,
+    "items": [
+      {
+        "description": "General Consultation",
+        "quantity": 1,
+        "unitPrice": 150.00,
+        "total": 150.00
+      },
+      {
+        "description": "Blood Test",
+        "quantity": 1,
+        "unitPrice": 100.00,
+        "total": 100.00
+      }
+    ],
+    "paymentMethod": "credit_card",
+    "paidDate": "2024-01-20",
+    "notes": "Regular checkup and lab work"
+  },
+  {
+    "Id": 2,
+    "patientId": 1,
+    "invoiceNumber": "INV-2024-002",
+    "date": "2024-02-20",
+    "dueDate": "2024-03-21",
+    "status": "pending",
+    "amount": 180.00,
+    "items": [
+      {
+        "description": "Follow-up Consultation",
+        "quantity": 1,
+        "unitPrice": 120.00,
+        "total": 120.00
+      },
+      {
+        "description": "X-Ray",
+        "quantity": 1,
+        "unitPrice": 60.00,
+        "total": 60.00
+      }
+    ],
+    "paymentMethod": null,
+    "paidDate": null,
+    "notes": "Follow-up for previous consultation"
+  },
+  {
+    "Id": 3,
+    "patientId": 2,
+    "invoiceNumber": "INV-2024-003",
+    "date": "2024-01-25",
+    "dueDate": "2024-02-24",
+    "status": "overdue",
+    "amount": 320.00,
+    "items": [
+      {
+        "description": "Specialist Consultation",
+        "quantity": 1,
+        "unitPrice": 200.00,
+        "total": 200.00
+      },
+      {
+        "description": "MRI Scan",
+        "quantity": 1,
+        "unitPrice": 120.00,
+        "total": 120.00
+      }
+    ],
+    "paymentMethod": null,
+    "paidDate": null,
+    "notes": "Neurological consultation and imaging"
+  },
+  {
+    "Id": 4,
+    "patientId": 3,
+    "invoiceNumber": "INV-2024-004",
+    "date": "2024-03-01",
+    "dueDate": "2024-03-31",
+    "status": "draft",
+    "amount": 95.00,
+    "items": [
+      {
+        "description": "Routine Checkup",
+        "quantity": 1,
+        "unitPrice": 95.00,
+        "total": 95.00
+      }
+    ],
+    "paymentMethod": null,
+    "paidDate": null,
+    "notes": "Annual physical examination"
+  }
+]

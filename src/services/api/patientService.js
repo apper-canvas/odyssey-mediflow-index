@@ -1,9 +1,8 @@
 import patientData from "../mockData/patients.json";
-
+import { billingService } from "./billingService";
 let patients = [...patientData];
 
 const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
-
 export const patientService = {
   async getAll() {
     await delay(300);
@@ -91,7 +90,31 @@ async delete(id) {
       throw new Error("Document not found");
     }
 
-    patient.documents.splice(docIndex, 1);
+patient.documents.splice(docIndex, 1);
     return true;
+  },
+
+  async getBillingRecords(patientId) {
+    return await billingService.getByPatientId(patientId);
+  },
+
+  async createBillingRecord(billingData) {
+    return await billingService.create(billingData);
+  },
+
+  async updateBillingRecord(id, billingData) {
+    return await billingService.update(id, billingData);
+  },
+
+  async deleteBillingRecord(id) {
+    return await billingService.delete(id);
+  },
+
+  async processPayment(billingId, paymentData) {
+    return await billingService.processPayment(billingId, paymentData);
+  },
+
+  async generateInvoice(billingId) {
+    return await billingService.generateInvoice(billingId);
   }
 };
