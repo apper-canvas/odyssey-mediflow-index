@@ -10,20 +10,23 @@ import Card from "@/components/atoms/Card";
 import ApperIcon from "@/components/ApperIcon";
 import { appointmentService } from "@/services/api/appointmentService";
 import { patientService } from "@/services/api/patientService";
+import { waitlistService } from "@/services/api/waitlistService";
 import { toast } from "react-toastify";
 import { motion, AnimatePresence } from "framer-motion";
 import { format, isToday, isTomorrow, isThisWeek } from "date-fns";
 
 const Appointments = () => {
-  const [appointments, setAppointments] = useState([]);
+const [appointments, setAppointments] = useState([]);
   const [patients, setPatients] = useState([]);
   const [filteredAppointments, setFilteredAppointments] = useState([]);
+  const [waitlistQueue, setWaitlistQueue] = useState([]);
+  const [waitlistStats, setWaitlistStats] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [showForm, setShowForm] = useState(false);
   const [filterBy, setFilterBy] = useState("all");
   const [viewMode, setViewMode] = useState("list");
-
+  const [showWaitlist, setShowWaitlist] = useState(false);
   useEffect(() => {
     loadAppointments();
   }, []);
@@ -32,23 +35,89 @@ const Appointments = () => {
     applyFilters();
   }, [appointments, filterBy]);
 
-  const loadAppointments = async () => {
+const loadAppointments = async () => {
     try {
       setLoading(true);
       setError("");
       
-      const [appointmentsData, patientsData] = await Promise.all([
+      const [appointmentsData, patientsData, waitlistData, statsData] = await Promise.all([
         appointmentService.getAll(),
-        patientService.getAll()
+        patientService.getAll(),
+        waitlistService.getQueue(),
+        waitlistService.getStats()
       ]);
 
       setAppointments(appointmentsData);
       setPatients(patientsData);
+      setWaitlistQueue(waitlistData);
+      setWaitlistStats(statsData);
     } catch (err) {
       console.error("Failed to load appointments:", err);
       setError("Failed to load appointments. Please try again.");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleWaitlistEnroll = async (patientId, appointmentType) => {
+    try {
+      await waitlistService.enrollPatient(patientId, appointmentType);
+      const [updatedQueue, updatedStats] = await Promise.all([
+        waitlistService.getQueue(),
+        waitlistService.getStats()
+      ]);
+      setWaitlistQueue(updatedQueue);
+      setWaitlistStats(updatedStats);
+      toast.success("Patient added to waitlist successfully");
+    } catch (err) {
+      console.error("Failed to add to waitlist:", err);
+      toast.error(err.message || "Failed to add patient to waitlist");
+    }
+  };
+
+  const processWaitlistQueue = async (cancelledAppointment) => {
+    try {
+      const availableSlot = {
+        date: cancelledAppointment.date,
+        time: cancelledAppointment.time,
+        type: cancelledAppointment.type,
+        duration: cancelledAppointment.duration
+      };
+
+      const processedEntry = await waitlistService.processNext(availableSlot);
+      
+      if (processedEntry) {
+        const [updatedQueue, updatedStats] = await Promise.all([
+          waitlistService.getQueue(),
+          waitlistService.getStats()
+        ]);
+        setWaitlistQueue(updatedQueue);
+        setWaitlistStats(updatedStats);
+        
+        const patient = getPatientById(processedEntry.patientId);
+        toast.info(`${patient?.firstName} ${patient?.lastName} has been notified of available appointment slot`);
+      } else {
+        toast.info("No patients currently on waitlist for this appointment type");
+      }
+    } catch (err) {
+      console.error("Failed to process waitlist:", err);
+      toast.error("Failed to process waitlist queue");
+    }
+  };
+
+  const handleRemoveFromWaitlist = async (entryId) => {
+    try {
+      await waitlistService.removeFromQueue(entryId);
+      const [updatedQueue, updatedStats] = await Promise.all([
+        waitlistService.getQueue(),
+        waitlistService.getStats()
+      ]);
+      setWaitlistQueue(updatedQueue);
+      setWaitlistStats(updatedStats);
+      toast.success("Patient removed from waitlist");
+    } catch (err) {
+      console.error("Failed to remove from waitlist:", err);
+      toast.error("Failed to remove patient from waitlist");
     }
   };
 
@@ -105,17 +174,33 @@ const Appointments = () => {
     }
   };
 
-  const handleStatusChange = async (appointmentId, newStatus) => {
+const handleStatusChange = async (appointmentId, newStatus) => {
     try {
+      if (newStatus === "AddToWaitlist") {
+        const appointment = appointments.find(apt => apt.Id === appointmentId);
+        if (appointment) {
+          const patient = getPatientById(appointment.patientId);
+          await handleWaitlistEnroll(appointment.patientId, appointment.type);
+          return;
+        }
+      }
+
       await appointmentService.update(appointmentId, { status: newStatus });
       
-      setAppointments(prev => 
-        prev.map(apt => 
-          apt.Id === appointmentId 
-            ? { ...apt, status: newStatus }
-            : apt
-        )
+      const updatedAppointments = appointments.map(apt => 
+        apt.Id === appointmentId 
+          ? { ...apt, status: newStatus }
+          : apt
       );
+      setAppointments(updatedAppointments);
+
+      // If appointment was cancelled, process waitlist queue
+      if (newStatus === "Cancelled") {
+        const cancelledAppointment = updatedAppointments.find(apt => apt.Id === appointmentId);
+        if (cancelledAppointment) {
+          await processWaitlistQueue(cancelledAppointment);
+        }
+      }
 
       toast.success(`Appointment ${newStatus.toLowerCase()} successfully`);
     } catch (err) {
@@ -164,7 +249,7 @@ const Appointments = () => {
       </div>
 
       {/* Filters and Controls */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between space-y-4 md:space-y-0">
+<div className="flex flex-col md:flex-row md:items-center justify-between space-y-4 md:space-y-0">
         <div className="flex flex-col md:flex-row md:items-center space-y-4 md:space-y-0 md:space-x-4">
           <Select
             value={filterBy}
@@ -204,11 +289,86 @@ const Appointments = () => {
           </div>
         </div>
 
-        <div className="flex items-center text-sm text-slate-600">
-          <ApperIcon name="Calendar" size={16} className="mr-2" />
-          {filteredAppointments.length} appointments
+        <div className="flex items-center space-x-4">
+          <Button
+            variant={showWaitlist ? "primary" : "outline"}
+            size="sm"
+            onClick={() => setShowWaitlist(!showWaitlist)}
+          >
+            <ApperIcon name="Clock" size={16} className="mr-2" />
+            Waitlist Queue ({waitlistStats.totalWaiting || 0})
+          </Button>
+          
+          <div className="flex items-center text-sm text-slate-600">
+            <ApperIcon name="Calendar" size={16} className="mr-2" />
+            {filteredAppointments.length} appointments
+          </div>
         </div>
       </div>
+
+      {/* Waitlist Queue Section */}
+      {showWaitlist && (
+        <Card className="p-6">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-semibold text-slate-900">Waitlist Queue Management</h3>
+            <div className="flex items-center space-x-4 text-sm text-slate-600">
+              <span>Total Waiting: {waitlistStats.totalWaiting || 0}</span>
+              <span>Urgent: {waitlistStats.urgentCount || 0}</span>
+              <span>Avg Wait: {waitlistStats.avgWaitTime || '0 days'}</span>
+            </div>
+          </div>
+
+          {waitlistQueue.length === 0 ? (
+            <div className="text-center py-8">
+              <ApperIcon name="Clock" size={32} className="mx-auto text-slate-400 mb-2" />
+              <p className="text-slate-600">No patients currently on waitlist</p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {waitlistQueue.map((entry, index) => {
+                const patient = getPatientById(entry.patientId);
+                return (
+                  <div key={entry.Id} className="flex items-center justify-between p-4 bg-slate-50 rounded-lg">
+                    <div className="flex items-center space-x-4">
+                      <div className="flex items-center justify-center w-8 h-8 bg-primary-100 rounded-full text-primary-600 font-medium text-sm">
+                        {entry.position}
+                      </div>
+                      <div>
+                        <p className="font-medium text-slate-900">
+                          {patient?.firstName} {patient?.lastName}
+                        </p>
+                        <p className="text-sm text-slate-600 capitalize">
+                          {entry.appointmentType} • Enrolled {format(new Date(entry.enrolledAt), 'MMM d')}
+                        </p>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center space-x-3">
+                      <span className={`px-2 py-1 text-xs font-medium rounded-full ${
+                        entry.priority === 'urgent' ? 'bg-red-100 text-red-800' :
+                        entry.priority === 'high' ? 'bg-orange-100 text-orange-800' :
+                        'bg-blue-100 text-blue-800'
+                      }`}>
+                        {entry.priority}
+                      </span>
+                      <span className="text-sm text-slate-600">
+                        Est: {entry.estimatedWaitTime}
+                      </span>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleRemoveFromWaitlist(entry.Id)}
+                      >
+                        Remove
+                      </Button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </Card>
+      )}
 
       {/* Appointment Form Modal */}
       <AnimatePresence>

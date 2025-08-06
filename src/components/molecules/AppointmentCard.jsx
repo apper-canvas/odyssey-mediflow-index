@@ -71,7 +71,7 @@ const AppointmentCard = ({ appointment, patient, onStatusChange }) => {
           >
             Confirm
           </Button>
-          <Button 
+<Button 
             size="sm" 
             variant="outline"
             onClick={() => onStatusChange(appointment.Id, "Cancelled")}
@@ -79,6 +79,17 @@ const AppointmentCard = ({ appointment, patient, onStatusChange }) => {
             Cancel
           </Button>
         </div>
+      )}
+
+      {appointment.status === "Cancelled" && (
+        <Button 
+          size="sm" 
+          variant="primary"
+          onClick={() => onStatusChange && onStatusChange(appointment.Id, "AddToWaitlist")}
+        >
+          <ApperIcon name="Clock" size={14} className="mr-1" />
+          Add to Waitlist
+        </Button>
       )}
 
       {appointment.status === "Confirmed" && (
