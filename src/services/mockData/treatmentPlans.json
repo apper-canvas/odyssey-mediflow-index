@@ -1,0 +1,143 @@
+[
+  {
+    "Id": 1,
+    "patientId": 1,
+    "title": "Diabetes Management Plan",
+    "description": "Comprehensive treatment plan for Type 2 diabetes management and lifestyle modification",
+    "status": "active",
+    "startDate": "2024-01-15",
+    "targetEndDate": "2024-07-15",
+    "createdAt": "2024-01-15T10:00:00.000Z",
+    "milestones": [
+      {
+        "Id": 1,
+        "title": "Initial HbA1c Assessment",
+        "description": "Baseline HbA1c measurement and comprehensive metabolic panel",
+        "category": "test",
+        "status": "completed",
+        "targetDate": "2024-01-20",
+        "completedDate": "2024-01-18T09:30:00.000Z",
+        "notes": "HbA1c: 8.2%, starting medication adjustment",
+        "createdAt": "2024-01-15T10:00:00.000Z"
+      },
+      {
+        "Id": 2,
+        "title": "Medication Adjustment",
+        "description": "Adjust Metformin dosage based on initial lab results",
+        "category": "treatment",
+        "status": "completed",
+        "targetDate": "2024-01-25",
+        "completedDate": "2024-01-24T14:00:00.000Z",
+        "notes": "Increased Metformin to 1000mg twice daily, patient tolerating well",
+        "createdAt": "2024-01-15T10:00:00.000Z"
+      },
+      {
+        "Id": 3,
+        "title": "Nutritionist Consultation",
+        "description": "Meet with certified diabetes educator for meal planning",
+        "category": "followup",
+        "status": "in-progress",
+        "targetDate": "2024-02-10",
+        "notes": "",
+        "createdAt": "2024-01-15T10:00:00.000Z"
+      },
+      {
+        "Id": 4,
+        "title": "3-Month Follow-up Labs",
+        "description": "HbA1c, lipid panel, and kidney function assessment",
+        "category": "test",
+        "status": "pending",
+        "targetDate": "2024-04-15",
+        "notes": "",
+        "createdAt": "2024-01-15T10:00:00.000Z"
+      }
+    ]
+  },
+  {
+    "Id": 2,
+    "patientId": 2,
+    "title": "Asthma Control Plan",
+    "description": "Comprehensive asthma management and trigger identification program",
+    "status": "active",
+    "startDate": "2024-01-08",
+    "targetEndDate": "2024-06-08",
+    "createdAt": "2024-01-08T14:30:00.000Z",
+    "milestones": [
+      {
+        "Id": 5,
+        "title": "Peak Flow Baseline",
+        "description": "Establish baseline peak flow measurements",
+        "category": "test",
+        "status": "completed",
+        "targetDate": "2024-01-10",
+        "completedDate": "2024-01-10T11:00:00.000Z",
+        "notes": "Peak flow: 420 L/min, mild obstruction noted",
+        "createdAt": "2024-01-08T14:30:00.000Z"
+      },
+      {
+        "Id": 6,
+        "title": "Inhaler Technique Review",
+        "description": "Review and optimize inhaler technique with respiratory therapist",
+        "category": "treatment",
+        "status": "completed",
+        "targetDate": "2024-01-15",
+        "completedDate": "2024-01-15T13:30:00.000Z",
+        "notes": "Technique improved, patient demonstrated proper use",
+        "createdAt": "2024-01-08T14:30:00.000Z"
+      },
+      {
+        "Id": 7,
+        "title": "Allergy Testing",
+        "description": "Comprehensive allergy panel to identify triggers",
+        "category": "test",
+        "status": "pending",
+        "targetDate": "2024-02-20",
+        "notes": "",
+        "createdAt": "2024-01-08T14:30:00.000Z"
+      }
+    ]
+  },
+  {
+    "Id": 3,
+    "patientId": 4,
+    "title": "Cardiac Recovery Plan",
+    "description": "Post-cardiac event rehabilitation and monitoring program",
+    "status": "active",
+    "startDate": "2023-12-20",
+    "targetEndDate": "2024-06-20",
+    "createdAt": "2023-12-20T09:00:00.000Z",
+    "milestones": [
+      {
+        "Id": 8,
+        "title": "Echocardiogram",
+        "description": "Baseline cardiac function assessment",
+        "category": "test",
+        "status": "completed",
+        "targetDate": "2024-01-05",
+        "completedDate": "2024-01-03T10:00:00.000Z",
+        "notes": "EF 55%, mild wall motion abnormality",
+        "createdAt": "2023-12-20T09:00:00.000Z"
+      },
+      {
+        "Id": 9,
+        "title": "Cardiac Rehabilitation Enrollment",
+        "description": "Begin supervised cardiac rehabilitation program",
+        "category": "treatment",
+        "status": "in-progress",
+        "targetDate": "2024-01-15",
+        "notes": "Attending 3x weekly, good progress",
+        "createdAt": "2023-12-20T09:00:00.000Z"
+      },
+      {
+        "Id": 10,
+        "title": "Lipid Management Review",
+        "description": "Assess cholesterol levels and medication effectiveness",
+        "category": "followup",
+        "status": "pending",
+        "targetDate": "2024-03-20",
+        "notes": "",
+        "createdAt": "2023-12-20T09:00:00.000Z"
+      }
+    ]
+  }
+]

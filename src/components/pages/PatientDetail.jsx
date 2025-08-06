@@ -12,6 +12,7 @@ import { appointmentService } from "@/services/api/appointmentService";
 import { clinicalNoteService } from "@/services/api/clinicalNoteService";
 import { documentService } from "@/services/api/documentService";
 import DocumentUpload from "@/components/organisms/DocumentUpload";
+import TreatmentTimeline from "@/components/organisms/TreatmentTimeline";
 import { toast } from "react-toastify";
 import { format } from "date-fns";
 
@@ -139,11 +140,12 @@ const handleDocumentUpload = async (files) => {
     }
   };
 
-  const tabs = [
+const tabs = [
     { id: "overview", name: "Overview", icon: "User" },
     { id: "appointments", name: "Appointments", icon: "Calendar" },
     { id: "notes", name: "Clinical Notes", icon: "FileText" },
     { id: "documents", name: "Documents", icon: "FolderOpen" },
+    { id: "treatment", name: "Treatment Plan", icon: "Target" },
     { id: "history", name: "Medical History", icon: "Activity" }
   ];
 
@@ -553,6 +555,11 @@ const handleDocumentUpload = async (files) => {
               </Card>
             )}
           </div>
+)}
+
+        {/* Treatment Plan Tab */}
+        {activeTab === "treatment" && (
+          <TreatmentTimeline patientId={patient.Id} />
         )}
 
         {/* Medical History Tab */}
