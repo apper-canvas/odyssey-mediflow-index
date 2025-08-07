@@ -371,7 +371,7 @@ const tabs = [
               <ApperIcon name="User" size={24} className="text-white" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold text-slate-900">
+<h1 className="text-2xl font-bold text-slate-900">
                 {patient.firstName} {patient.lastName}
               </h1>
               <p className="text-slate-600 mt-1">Patient ID: {patient.Id}</p>
@@ -397,8 +397,8 @@ const tabs = [
           </div>
         </div>
 
-        {/* Allergies Warning */}
-        {patient.allergies && patient.allergies.length > 0 && (
+{/* Allergies Warning */}
+        {patient.allergies && Array.isArray(patient.allergies) && patient.allergies.length > 0 && (
           <div className="mt-6 p-4 bg-orange-50 border border-orange-200 rounded-lg">
             <div className="flex items-center text-orange-800">
               <ApperIcon name="AlertTriangle" size={16} className="mr-2" />
@@ -641,8 +641,8 @@ const tabs = [
         {activeTab === "history" && (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <Card className="p-6">
-              <h3 className="text-lg font-semibold text-slate-900 mb-4">Medical History</h3>
-              {patient.medicalHistory && patient.medicalHistory.length > 0 ? (
+<h3 className="text-lg font-semibold text-slate-900 mb-4">Medical History</h3>
+              {patient.medicalHistory && Array.isArray(patient.medicalHistory) && patient.medicalHistory.length > 0 ? (
                 <ul className="space-y-2">
                   {patient.medicalHistory.map((condition, index) => (
                     <li key={index} className="flex items-center text-slate-700">
@@ -657,8 +657,8 @@ const tabs = [
             </Card>
 
             <Card className="p-6">
-              <h3 className="text-lg font-semibold text-slate-900 mb-4">Current Medications</h3>
-              {patient.currentMedications && patient.currentMedications.length > 0 ? (
+<h3 className="text-lg font-semibold text-slate-900 mb-4">Current Medications</h3>
+              {patient.currentMedications && Array.isArray(patient.currentMedications) && patient.currentMedications.length > 0 ? (
                 <ul className="space-y-2">
                   {patient.currentMedications.map((medication, index) => (
                     <li key={index} className="flex items-center text-slate-700">

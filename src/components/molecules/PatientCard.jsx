@@ -58,7 +58,7 @@ const PatientCard = ({ patient }) => {
         </div>
       </div>
 
-      {patient.allergies && patient.allergies.length > 0 && (
+{patient.allergies && Array.isArray(patient.allergies) && patient.allergies.length > 0 && (
         <div className="mt-4 pt-4 border-t border-slate-200">
           <div className="flex items-center text-sm text-orange-600">
             <ApperIcon name="AlertTriangle" size={14} className="mr-2" />

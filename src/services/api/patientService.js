@@ -1,68 +1,274 @@
-import patientData from "../mockData/patients.json";
 import { billingService } from "./billingService";
-let patients = [...patientData];
 
-const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+const { ApperClient } = window.ApperSDK;
+const apperClient = new ApperClient({
+  apperProjectId: import.meta.env.VITE_APPER_PROJECT_ID,
+  apperPublicKey: import.meta.env.VITE_APPER_PUBLIC_KEY
+});
+
 export const patientService = {
   async getAll() {
-    await delay(300);
-    return [...patients];
+    try {
+      const params = {
+        fields: [
+          { field: { Name: "Name" } },
+          { field: { Name: "first_name_c" } },
+          { field: { Name: "last_name_c" } },
+          { field: { Name: "date_of_birth_c" } },
+          { field: { Name: "phone_c" } },
+          { field: { Name: "email_c" } },
+          { field: { Name: "address_c" } },
+          { field: { Name: "emergency_contact_name_c" } },
+          { field: { Name: "emergency_contact_phone_c" } },
+          { field: { Name: "emergency_contact_relationship_c" } },
+          { field: { Name: "medical_history_c" } },
+          { field: { Name: "allergies_c" } },
+          { field: { Name: "current_medications_c" } },
+          { field: { Name: "last_visit_c" } },
+          { field: { Name: "CreatedOn" } }
+        ]
+      };
+
+      const response = await apperClient.fetchRecords('patient_c', params);
+      
+      if (!response.success) {
+        console.error(response.message);
+        throw new Error(response.message);
+      }
+
+      return response.data?.map(patient => ({
+        Id: patient.Id,
+        firstName: patient.first_name_c || '',
+        lastName: patient.last_name_c || '',
+        dateOfBirth: patient.date_of_birth_c || '',
+        phone: patient.phone_c || '',
+        email: patient.email_c || '',
+        address: patient.address_c || '',
+        emergencyContact: {
+          name: patient.emergency_contact_name_c || '',
+          phone: patient.emergency_contact_phone_c || '',
+          relationship: patient.emergency_contact_relationship_c || ''
+        },
+        medicalHistory: patient.medical_history_c ? patient.medical_history_c.split(',').map(item => item.trim()) : [],
+        allergies: patient.allergies_c ? patient.allergies_c.split(',').map(item => item.trim()) : [],
+        currentMedications: patient.current_medications_c ? patient.current_medications_c.split(',').map(item => item.trim()) : [],
+        lastVisit: patient.last_visit_c || new Date().toISOString().split('T')[0],
+        createdAt: patient.CreatedOn?.split('T')[0] || new Date().toISOString().split('T')[0]
+      })) || [];
+    } catch (error) {
+      if (error?.response?.data?.message) {
+        console.error("Error fetching patients:", error?.response?.data?.message);
+      } else {
+        console.error(error.message);
+      }
+      return [];
+    }
   },
 
   async getById(id) {
-    await delay(200);
-    return patients.find(patient => patient.Id === id) || null;
+    try {
+      const params = {
+        fields: [
+          { field: { Name: "Name" } },
+          { field: { Name: "first_name_c" } },
+          { field: { Name: "last_name_c" } },
+          { field: { Name: "date_of_birth_c" } },
+          { field: { Name: "phone_c" } },
+          { field: { Name: "email_c" } },
+          { field: { Name: "address_c" } },
+          { field: { Name: "emergency_contact_name_c" } },
+          { field: { Name: "emergency_contact_phone_c" } },
+          { field: { Name: "emergency_contact_relationship_c" } },
+          { field: { Name: "medical_history_c" } },
+          { field: { Name: "allergies_c" } },
+          { field: { Name: "current_medications_c" } },
+          { field: { Name: "last_visit_c" } },
+          { field: { Name: "CreatedOn" } }
+        ]
+      };
+
+      const response = await apperClient.getRecordById('patient_c', id, params);
+      
+      if (!response.success || !response.data) {
+        return null;
+      }
+
+      const patient = response.data;
+      return {
+        Id: patient.Id,
+        firstName: patient.first_name_c || '',
+        lastName: patient.last_name_c || '',
+        dateOfBirth: patient.date_of_birth_c || '',
+        phone: patient.phone_c || '',
+        email: patient.email_c || '',
+        address: patient.address_c || '',
+        emergencyContact: {
+          name: patient.emergency_contact_name_c || '',
+          phone: patient.emergency_contact_phone_c || '',
+          relationship: patient.emergency_contact_relationship_c || ''
+        },
+        medicalHistory: patient.medical_history_c ? patient.medical_history_c.split(',').map(item => item.trim()) : [],
+        allergies: patient.allergies_c ? patient.allergies_c.split(',').map(item => item.trim()) : [],
+        currentMedications: patient.current_medications_c ? patient.current_medications_c.split(',').map(item => item.trim()) : [],
+        lastVisit: patient.last_visit_c || new Date().toISOString().split('T')[0],
+        createdAt: patient.CreatedOn?.split('T')[0] || new Date().toISOString().split('T')[0]
+      };
+    } catch (error) {
+      if (error?.response?.data?.message) {
+        console.error(`Error fetching patient with ID ${id}:`, error?.response?.data?.message);
+      } else {
+        console.error(error.message);
+      }
+      return null;
+    }
   },
 
   async create(patientData) {
-    await delay(400);
-    const newPatient = {
-      ...patientData,
-      Id: Math.max(...patients.map(p => p.Id)) + 1,
-      createdAt: new Date().toISOString().split('T')[0],
-      lastVisit: new Date().toISOString().split('T')[0]
-    };
-    patients.unshift(newPatient);
-    return newPatient;
+    try {
+      const params = {
+        records: [
+          {
+            Name: `${patientData.firstName} ${patientData.lastName}`,
+            first_name_c: patientData.firstName,
+            last_name_c: patientData.lastName,
+            date_of_birth_c: patientData.dateOfBirth,
+            phone_c: patientData.phone,
+            email_c: patientData.email,
+            address_c: patientData.address || '',
+            emergency_contact_name_c: patientData.emergencyContact?.name || '',
+            emergency_contact_phone_c: patientData.emergencyContact?.phone || '',
+            emergency_contact_relationship_c: patientData.emergencyContact?.relationship || '',
+            medical_history_c: Array.isArray(patientData.medicalHistory) ? patientData.medicalHistory.join(', ') : '',
+            allergies_c: Array.isArray(patientData.allergies) ? patientData.allergies.join(', ') : '',
+            current_medications_c: Array.isArray(patientData.currentMedications) ? patientData.currentMedications.join(', ') : '',
+            last_visit_c: new Date().toISOString().split('T')[0]
+          }
+        ]
+      };
+
+      const response = await apperClient.createRecord('patient_c', params);
+      
+      if (!response.success) {
+        console.error(response.message);
+        throw new Error(response.message);
+      }
+
+      if (response.results) {
+        const failedRecords = response.results.filter(result => !result.success);
+        
+        if (failedRecords.length > 0) {
+          console.error(`Failed to create patient ${failedRecords.length} records:${JSON.stringify(failedRecords)}`);
+          throw new Error('Failed to create patient');
+        }
+
+        const successfulRecord = response.results.find(result => result.success);
+        if (successfulRecord) {
+          return this.getById(successfulRecord.data.Id);
+        }
+      }
+
+      throw new Error('Unexpected response format');
+    } catch (error) {
+      if (error?.response?.data?.message) {
+        console.error("Error creating patient:", error?.response?.data?.message);
+      } else {
+        console.error(error.message);
+      }
+      throw error;
+    }
   },
 
   async update(id, patientData) {
-    await delay(400);
-    const index = patients.findIndex(patient => patient.Id === id);
-    if (index !== -1) {
-      patients[index] = { ...patients[index], ...patientData };
-      return patients[index];
+    try {
+      const updateData = {
+        Name: `${patientData.firstName} ${patientData.lastName}`,
+        first_name_c: patientData.firstName,
+        last_name_c: patientData.lastName,
+        date_of_birth_c: patientData.dateOfBirth,
+        phone_c: patientData.phone,
+        email_c: patientData.email,
+        address_c: patientData.address || '',
+        emergency_contact_name_c: patientData.emergencyContact?.name || '',
+        emergency_contact_phone_c: patientData.emergencyContact?.phone || '',
+        emergency_contact_relationship_c: patientData.emergencyContact?.relationship || '',
+        medical_history_c: Array.isArray(patientData.medicalHistory) ? patientData.medicalHistory.join(', ') : '',
+        allergies_c: Array.isArray(patientData.allergies) ? patientData.allergies.join(', ') : '',
+        current_medications_c: Array.isArray(patientData.currentMedications) ? patientData.currentMedications.join(', ') : ''
+      };
+
+      const params = {
+        records: [{ Id: id, ...updateData }]
+      };
+
+      const response = await apperClient.updateRecord('patient_c', params);
+      
+      if (!response.success) {
+        console.error(response.message);
+        throw new Error(response.message);
+      }
+
+      if (response.results) {
+        const failedRecords = response.results.filter(result => !result.success);
+        
+        if (failedRecords.length > 0) {
+          console.error(`Failed to update patient ${failedRecords.length} records:${JSON.stringify(failedRecords)}`);
+          throw new Error('Failed to update patient');
+        }
+
+        return this.getById(id);
+      }
+
+      throw new Error('Unexpected response format');
+    } catch (error) {
+      if (error?.response?.data?.message) {
+        console.error("Error updating patient:", error?.response?.data?.message);
+      } else {
+        console.error(error.message);
+      }
+      throw error;
     }
-    throw new Error("Patient not found");
   },
 
-async delete(id) {
-    await delay(300);
-    const index = patients.findIndex(patient => patient.Id === id);
-    if (index !== -1) {
-      const deleted = patients.splice(index, 1)[0];
-      return deleted;
+  async delete(id) {
+    try {
+      const params = { RecordIds: [id] };
+      const response = await apperClient.deleteRecord('patient_c', params);
+      
+      if (!response.success) {
+        console.error(response.message);
+        throw new Error(response.message);
+      }
+
+      if (response.results) {
+        const failedRecords = response.results.filter(result => !result.success);
+        
+        if (failedRecords.length > 0) {
+          console.error(`Failed to delete patient ${failedRecords.length} records:${JSON.stringify(failedRecords)}`);
+          throw new Error('Failed to delete patient');
+        }
+
+        return true;
+      }
+
+      return true;
+    } catch (error) {
+      if (error?.response?.data?.message) {
+        console.error("Error deleting patient:", error?.response?.data?.message);
+      } else {
+        console.error(error.message);
+      }
+      throw error;
     }
-    throw new Error("Patient not found");
   },
 
+  // Document management - using mock implementation since documents aren't in schema
   async getDocuments(patientId) {
-    await delay(200);
-    const patient = patients.find(p => p.Id === patientId);
-    return patient?.documents || [];
+    // Mock implementation for documents
+    return [];
   },
 
   async addDocuments(patientId, files) {
-    await delay(500);
-    const patient = patients.find(p => p.Id === patientId);
-    if (!patient) {
-      throw new Error("Patient not found");
-    }
-
-    if (!patient.documents) {
-      patient.documents = [];
-    }
-
+    // Mock implementation for documents
     const newDocuments = files.map((file, index) => ({
       Id: Date.now() + index,
       name: file.name,
@@ -73,27 +279,15 @@ async delete(id) {
       url: file.url,
       preview: file.preview
     }));
-
-    patient.documents.push(...newDocuments);
     return newDocuments;
   },
 
   async deleteDocument(patientId, documentId) {
-    await delay(300);
-    const patient = patients.find(p => p.Id === patientId);
-    if (!patient || !patient.documents) {
-      throw new Error("Patient or document not found");
-    }
-
-    const docIndex = patient.documents.findIndex(doc => doc.Id === documentId);
-    if (docIndex === -1) {
-      throw new Error("Document not found");
-    }
-
-patient.documents.splice(docIndex, 1);
+    // Mock implementation for documents
     return true;
   },
 
+  // Billing integration
   async getBillingRecords(patientId) {
     return await billingService.getByPatientId(patientId);
   },

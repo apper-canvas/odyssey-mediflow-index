@@ -1,9 +1,14 @@
-import React from "react";
+import React, { useContext } from "react";
+import { useSelector } from 'react-redux';
 import Button from "@/components/atoms/Button";
 import SearchBar from "@/components/molecules/SearchBar";
 import ApperIcon from "@/components/ApperIcon";
+import { AuthContext } from "../../App";
 
 const Header = ({ onMenuClick, searchValue, onSearchChange }) => {
+  const { logout } = useContext(AuthContext);
+  const user = useSelector((state) => state.user.user);
+
   return (
     <header className="bg-white border-b border-slate-200 shadow-sm">
       <div className="flex items-center justify-between px-4 lg:px-8 py-4">
@@ -45,8 +50,23 @@ const Header = ({ onMenuClick, searchValue, onSearchChange }) => {
               <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
             </button>
 
-            <div className="w-8 h-8 bg-gradient-to-br from-primary-500 to-primary-600 rounded-full flex items-center justify-center">
-              <ApperIcon name="User" size={16} className="text-white" />
+            <div className="flex items-center space-x-2">
+              <div className="w-8 h-8 bg-gradient-to-br from-primary-500 to-primary-600 rounded-full flex items-center justify-center">
+                <ApperIcon name="User" size={16} className="text-white" />
+              </div>
+              {user && (
+                <div className="hidden md:block">
+                  <p className="text-sm font-medium text-slate-900">{user.firstName} {user.lastName}</p>
+                </div>
+              )}
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={logout}
+                className="text-slate-600 hover:text-slate-900"
+              >
+                <ApperIcon name="LogOut" size={16} />
+              </Button>
             </div>
           </div>
         </div>

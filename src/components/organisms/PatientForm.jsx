@@ -6,7 +6,7 @@ import Card from "@/components/atoms/Card";
 import ApperIcon from "@/components/ApperIcon";
 
 const PatientForm = ({ patient, onSubmit, onCancel }) => {
-  const [formData, setFormData] = useState({
+const [formData, setFormData] = useState({
     firstName: patient?.firstName || "",
     lastName: patient?.lastName || "",
     dateOfBirth: patient?.dateOfBirth || "",
@@ -18,9 +18,9 @@ const PatientForm = ({ patient, onSubmit, onCancel }) => {
       phone: patient?.emergencyContact?.phone || "",
       relationship: patient?.emergencyContact?.relationship || ""
     },
-    allergies: patient?.allergies?.join(", ") || "",
-    currentMedications: patient?.currentMedications?.join(", ") || "",
-    medicalHistory: patient?.medicalHistory?.join(", ") || ""
+    allergies: Array.isArray(patient?.allergies) ? patient.allergies.join(", ") : patient?.allergies || "",
+    currentMedications: Array.isArray(patient?.currentMedications) ? patient.currentMedications.join(", ") : patient?.currentMedications || "",
+    medicalHistory: Array.isArray(patient?.medicalHistory) ? patient.medicalHistory.join(", ") : patient?.medicalHistory || ""
   });
 
   const handleSubmit = (e) => {
