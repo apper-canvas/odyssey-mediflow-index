@@ -409,7 +409,4 @@ export const doctorService = {
     }
   }
 };
-
-export default doctorService;
-
 export default doctorService;
